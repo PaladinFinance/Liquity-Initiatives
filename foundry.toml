@@ -2,5 +2,31 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+ffi = true
+fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}]
+solc_version = "0.8.24"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 100000
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+gas_reports = ["*"]
+
+[profile.checker.model_checker]
+engine = 'all'
+timeout = 10000
+targets = ['assert', 'underflow', 'overflow', 'constantCondition']
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_API_KEY}" }
+
+[fmt]
+number_underscore = "remove"
+line_length = 120
+bracket_spacing = true
+quote_style = "double"
+ignore = ['./script/**/*', './lib/**/*']
+
+[rpc_endpoints]
+eth = '${MAINNET_URI}'
+fork = '${FORK_URI}'
+test = '${TEST_URI}'

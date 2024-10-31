@@ -1,6 +1,7 @@
 # Compiler files
 cache/
 out/
+flatten/
 
 # Ignores development broadcast logs
 !/broadcast
@@ -12,3 +13,10 @@ docs/
 
 # Dotenv file
 .env
+**/.env
+
+# Others
+.vscode/
+**/.DS_Store
+.DS_Store
+coverage*
