@@ -1,0 +1,5 @@
+forge-std/=lib/forge-std/src/
+ds-test/=lib/forge-std/lib/ds-test/src/
+liquity-gov/=lib/V2-gov/
+openzeppelin-contracts/contracts/=lib/V2-gov/lib/openzeppelin-contracts/contracts/
+uniswap/v4-core/=lib/V2-gov/lib/v4-core/
