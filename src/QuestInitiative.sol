@@ -4,9 +4,12 @@ pragma solidity ^0.8.24;
 import { BribeInitiative } from "liquity-gov/src/BribeInitiative.sol";
 import { Ownable2Step } from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
 import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import { IERC20 } from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
+import { SafeERC20 } from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IQuestBoard } from "./interfaces/IQuestBoard.sol";
 
 contract QuestInitiative is BribeInitiative, Ownable2Step {
+    using SafeERC20 for IERC20;
 
     uint48 public constant DEFAULT_DURATION = 2;
 
@@ -41,8 +44,6 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
     ) BribeInitiative(_governance, _bold, _bribeToken) Ownable(msg.sender) {
         questBoard = _board;
         targetGauge = _gauge;
-
-        bold.approve(address(_board), type(uint256).max);
     }
 
     function process() external {
@@ -68,11 +69,13 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
             if (IQuestBoard(questBoard).getCurrentPeriod() <= lastPeriod) return;
         }
 
-        uint256 feeRatio = IQuestBoard(questBoard).platformFeeRatio();
+        uint256 feeRatio = IQuestBoard(questBoard).customPlatformFeeRatio(address(this));
+        if(feeRatio == 0) feeRatio = IQuestBoard(questBoard).platformFeeRatio();
         uint256 amountOutAfterFee = (pendingBudget * BPS) / (BPS + feeRatio);
         uint256 feeAmount = (amountOutAfterFee * feeRatio) / BPS;
         pendingBudget -= (amountOutAfterFee + feeAmount);
 
+        bold.safeIncreaseAllowance(address(_board), amountOutAfterFee + feeAmount);
         uint256 id = IQuestBoard(questBoard).createRangedQuest(
             targetGauge,
             address(bold),
