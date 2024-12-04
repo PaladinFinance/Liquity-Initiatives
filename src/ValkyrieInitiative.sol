@@ -67,14 +67,14 @@ contract ValkyrieInitiative is BribeInitiative, Ownable2Step {
             duration = DEFAULT_DURATION - remainingDuration;
 
             uint256 newDepositedBudget = newBudget - ((feeRatio * newBudget) / MAX_BPS);
-            uint256 newRate = (newBudget + remainingBudget) / (DEFAULT_DURATION);
+            uint256 newRate = (newDepositedBudget + remainingBudget) / (DEFAULT_DURATION);
 
             // Valkyrie will not permit to reduce the ratePerSec of the distribution, so if the new one is lower,
             // we will not deposit the rewards until having enough budget to keep or increase the ratePerSec
             if(newRate < currentDistribution.ratePerSec) return;
         }
         
-        bold.safeIncreaseAllowance(address(_board), newBudget);
+        bold.safeIncreaseAllowance(address(valkyrieIncentives), newBudget);
         IValkyrieBasicIncentive(valkyrieIncentives).depositRewards(
             targetPoolId,
             address(bold),

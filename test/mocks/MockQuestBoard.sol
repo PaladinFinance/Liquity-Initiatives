@@ -69,6 +69,11 @@ contract MockQuestBoard is IQuestBoard {
         return questID;
     }
 
+    struct Vars {
+        uint256 questID;
+        uint48 startPeriod;
+    }
+
     function createRangedQuest(
         address gauge,
         address rewardToken,
@@ -82,41 +87,71 @@ contract MockQuestBoard is IQuestBoard {
         QuestCloseType closeType,
         address[] calldata voterList
     ) external returns (uint256) {
-        uint256 questID = startId++;
+        // Set the Quest Types for the new Quest
+        QuestTypes memory types = QuestTypes({
+            voteType: voteType,
+            rewardsType: QuestRewardsType.RANGE,
+            closeType: closeType
+        });
+
+        return _createRangedQuest(
+            gauge,
+            rewardToken,
+            types,
+            startNextPeriod,
+            duration,
+            minRewardPerVote,
+            maxRewardPerVote,
+            totalRewardAmount,
+            feeAmount,
+            voterList
+        );
+    }
+
+    function _createRangedQuest(
+        address gauge,
+        address rewardToken,
+        QuestTypes memory types,
+        bool startNextPeriod,
+        uint48 duration,
+        uint256 minRewardPerVote,
+        uint256 maxRewardPerVote,
+        uint256 totalRewardAmount,
+        uint256 feeAmount,
+        address[] calldata voterList
+    ) internal returns (uint256) {
+        Vars memory vars;
+        vars.questID = startId++;
 
         IERC20(rewardToken).safeTransferFrom(msg.sender, address(this), totalRewardAmount + feeAmount);
 
-        uint48 startPeriod = safe48(getCurrentPeriod());
-        startPeriod = startNextPeriod ? startPeriod + WEEK_48 : startPeriod;
+        vars.startPeriod = safe48(getCurrentPeriod());
+        vars.startPeriod = startNextPeriod ? vars.startPeriod + WEEK_48 : vars.startPeriod;
 
-        _quests[questID] = Quest({
+        _quests[vars.questID] = Quest({
             creator: msg.sender,
             rewardToken: rewardToken,
             gauge: gauge,
             duration: duration,
-            periodStart: startPeriod,
+            periodStart: vars.startPeriod,
             totalRewardAmount: totalRewardAmount,
             rewardAmountPerPeriod: minRewardPerVote,
             minRewardPerVote: minRewardPerVote,
             maxRewardPerVote: maxRewardPerVote,
             minObjectiveVotes: 0,
             maxObjectiveVotes: 0,
-            types: QuestTypes({
-                voteType: voteType,
-                rewardsType: QuestRewardsType.RANGE,
-                closeType: closeType
-            })
+            types: types
         });
         
-        for(uint256 i = 0; i < voterList.length; i++) {
-            _questVoterList[questID].push(voterList[i]);
+        for(uint256 i; i < voterList.length; i++) {
+            _questVoterList[vars.questID].push(voterList[i]);
         }
         
         for(uint48 i = 0; i < duration; i++) {
-            _questPeriods[questID].push(startPeriod + (i * WEEK_48));
+            _questPeriods[vars.questID].push(vars.startPeriod + (i * WEEK_48));
         }
 
-        return questID;
+        return vars.questID;
     }
 
     function platformFeeRatio() external view returns (uint256) {

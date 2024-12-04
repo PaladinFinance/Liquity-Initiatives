@@ -75,7 +75,7 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
         uint256 feeAmount = (amountOutAfterFee * feeRatio) / BPS;
         pendingBudget -= (amountOutAfterFee + feeAmount);
 
-        bold.safeIncreaseAllowance(address(_board), amountOutAfterFee + feeAmount);
+        bold.safeIncreaseAllowance(address(questBoard), amountOutAfterFee + feeAmount);
         uint256 id = IQuestBoard(questBoard).createRangedQuest(
             targetGauge,
             address(bold),

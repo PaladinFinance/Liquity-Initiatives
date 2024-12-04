@@ -11,7 +11,11 @@ contract MockQuestBoard is IValkyrieBasicIncentive {
     using SafeERC20 for IERC20;
     using SafeCast for *;
 
+    uint256 private constant MAX_BPS = 10000;
+
     mapping(IncentivizedPoolId => mapping(address => RewardData)) public _poolRewardData;
+    mapping(IncentivizedPoolId => address[]) public poolRewards;
+    mapping(address => uint256) public accumulatedFees;
     mapping(address => uint256) public _feeRatios;
     uint256 public defaultFee = 100; //bps
 

@@ -44,5 +44,5 @@ interface IValkyrieBasicIncentive {
 
     function poolRewardData(IncentivizedPoolId id, address token) external view returns (RewardData memory);
 
-    function getFeeRatio(address account) external view virtual returns (uint256);
+    function getFeeRatio(address account) external view returns (uint256);
 }
