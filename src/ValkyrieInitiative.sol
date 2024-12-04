@@ -23,7 +23,7 @@ contract ValkyrieInitiative is BribeInitiative, Ownable2Step {
 
     uint256 public pendingBudget;
 
-    event IncentiveDepsoited();
+    event IncentiveDeposited();
 
     constructor(
         address _governance, address _bold, address _bribeToken, address _valkyrieIncentives, IncentivizedPoolId _poolId
@@ -48,7 +48,6 @@ contract ValkyrieInitiative is BribeInitiative, Ownable2Step {
 
     function _depositIncentive() internal {
         uint256 newBudget = pendingBudget;
-        pendingBudget = 0;
         uint256 duration = DEFAULT_DURATION;
 
         IValkyrieBasicIncentive.RewardData memory currentDistribution = IValkyrieBasicIncentive(valkyrieIncentives).poolRewardData(
@@ -73,6 +72,9 @@ contract ValkyrieInitiative is BribeInitiative, Ownable2Step {
             // we will not deposit the rewards until having enough budget to keep or increase the ratePerSec
             if(newRate < currentDistribution.ratePerSec) return;
         }
+
+        // Set the pending budget to 0 only if we are depositing the incentive
+        pendingBudget = 0;
         
         bold.safeIncreaseAllowance(address(valkyrieIncentives), newBudget);
         IValkyrieBasicIncentive(valkyrieIncentives).depositRewards(
@@ -81,6 +83,8 @@ contract ValkyrieInitiative is BribeInitiative, Ownable2Step {
             newBudget,
             duration
         );
+
+        emit IncentiveDeposited();
     }
 
 }
