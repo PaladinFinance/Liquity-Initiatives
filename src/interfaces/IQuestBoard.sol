@@ -85,4 +85,8 @@ interface IQuestBoard {
     function getAllPeriodsForQuestId(uint256 questID) external view returns (uint48[] memory);
 
     function getCurrentPeriod() external view returns (uint256);
+
+    function questWithdrawableAmount(uint256 questID) external view returns (uint256);
+
+    function withdrawUnusedRewards(uint256 questID, address recipient) external;
 }

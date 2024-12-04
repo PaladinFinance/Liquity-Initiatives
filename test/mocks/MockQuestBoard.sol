@@ -12,7 +12,7 @@ contract MockQuestBoard is IQuestBoard {
     uint256 private constant WEEK = 604800;
     uint48 private constant WEEK_48 = 604800;
 
-    uint256 startId = 1;
+    uint256 public startId = 1;
 
     mapping(uint256 => Quest) public _quests;
     mapping(uint256 => uint48[]) public _questPeriods;
@@ -135,7 +135,7 @@ contract MockQuestBoard is IQuestBoard {
             duration: duration,
             periodStart: vars.startPeriod,
             totalRewardAmount: totalRewardAmount,
-            rewardAmountPerPeriod: minRewardPerVote,
+            rewardAmountPerPeriod: totalRewardAmount / duration,
             minRewardPerVote: minRewardPerVote,
             maxRewardPerVote: maxRewardPerVote,
             minObjectiveVotes: 0,
@@ -176,5 +176,19 @@ contract MockQuestBoard is IQuestBoard {
 
     function safe48(uint n) internal pure returns (uint48) {
         return uint48(n);
+    }
+
+    function quests(uint256 questID) external view returns (Quest memory) {
+        return _quests[questID];
+    }
+
+    function questWithdrawableAmount(uint256 questID) external view returns (uint256) {
+        Quest memory quest = _quests[questID];
+        return quest.totalRewardAmount / 3;
+    }
+
+    function withdrawUnusedRewards(uint256 questID, address recipient) external {
+        Quest memory quest = _quests[questID];
+        IERC20(quest.rewardToken).safeTransfer(recipient, quest.totalRewardAmount / 3);
     }
 }

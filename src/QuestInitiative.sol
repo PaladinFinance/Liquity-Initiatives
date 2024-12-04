@@ -30,7 +30,7 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
         IQuestBoard.QuestCloseType closeType;
     }
 
-    QuestSettings public questSettings;
+    QuestSettings public _questSettings;
     address[] public questVoterList;
 
     error CannotCreateQuest();
@@ -44,6 +44,10 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
     ) BribeInitiative(_governance, _bold, _bribeToken) Ownable(msg.sender) {
         questBoard = _board;
         targetGauge = _gauge;
+    }
+
+    function questSettings() external view returns (QuestSettings memory) {
+        return _questSettings;
     }
 
     function process() external {
@@ -60,13 +64,27 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
         pendingBudget += amount;
     }
 
+    function _recoverUnusedBudget(uint256 questId) internal {
+        uint256 withdrawable = IQuestBoard(questBoard).questWithdrawableAmount(questId);
+        if(withdrawable == 0) return;
+
+        uint256 prevBalance = bold.balanceOf(address(this));
+        IQuestBoard(questBoard).withdrawUnusedRewards(questId, address(this));
+        uint256 received = bold.balanceOf(address(this)) - prevBalance;
+
+        pendingBudget += received;
+    }
+
     function _createQuest() internal {
-        QuestSettings memory settings = questSettings;
+        QuestSettings memory settings = _questSettings;
         if (previousQuest != 0) {
             uint48[] memory periods = IQuestBoard(questBoard).getAllPeriodsForQuestId(previousQuest);
             uint256 lastPeriod = periods[periods.length - 1];
             // Previous Quest is not over, do not create a new one
             if (IQuestBoard(questBoard).getCurrentPeriod() <= lastPeriod) return;
+
+            // Recover unused budget from previous Quest
+            _recoverUnusedBudget(previousQuest);
         }
 
         uint256 feeRatio = IQuestBoard(questBoard).customPlatformFeeRatio(address(this));
@@ -101,7 +119,7 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
         IQuestBoard.QuestCloseType _closeType,
         address[] memory _voterList
     ) external onlyOwner {
-        questSettings = QuestSettings({
+        _questSettings = QuestSettings({
             minRewardPerVote: _minRewardPerVote,
             maxRewardPerVote: _maxRewardPerVote,
             voteType: _voteType,
@@ -122,8 +140,8 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
         uint256 _minRewardPerVote,
         uint256 _maxRewardPerVote
     ) external onlyOwner {
-        questSettings.minRewardPerVote = _minRewardPerVote;
-        questSettings.maxRewardPerVote = _maxRewardPerVote;
+        _questSettings.minRewardPerVote = _minRewardPerVote;
+        _questSettings.maxRewardPerVote = _maxRewardPerVote;
 
         emit SettingsRewardPerVoteUpdated(_minRewardPerVote, _maxRewardPerVote);
     }
@@ -133,8 +151,8 @@ contract QuestInitiative is BribeInitiative, Ownable2Step {
         IQuestBoard.QuestCloseType _closeType,
         address[] memory _voterList
     ) external onlyOwner {
-        questSettings.voteType = _voteType;
-        questSettings.closeType = _closeType;
+        _questSettings.voteType = _voteType;
+        _questSettings.closeType = _closeType;
 
         delete questVoterList;
         uint256 length = _voterList.length;
