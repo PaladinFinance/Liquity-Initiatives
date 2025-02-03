@@ -12,6 +12,8 @@ contract MultiRecipientInitiative is BribeInitiative, Ownable2Step {
 
     uint256 private constant BPS = 10000;
 
+    uint256 public pendingBudget;
+
     constructor(
         address _governance, address _bold, address _bribeToken
     ) BribeInitiative(_governance, _bold, _bribeToken) Ownable(msg.sender) {
@@ -31,5 +33,9 @@ contract MultiRecipientInitiative is BribeInitiative, Ownable2Step {
         uint256 amount = governance.claimForInitiative(address(this));
         pendingBudget += amount;
     }
- 
+
+    function _distribute() internal {
+        
+    }
+
 }
