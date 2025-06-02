@@ -10,6 +10,9 @@ optimizer = true
 optimizer_runs = 100000
 
 gas_reports = ["*"]
+#verbosity = 3
+chain_id = 99
+block_timestamp = 2592000
 
 [profile.checker.model_checker]
 engine = 'all'
@@ -27,6 +30,6 @@ quote_style = "double"
 ignore = ['./script/**/*', './lib/**/*']
 
 [rpc_endpoints]
-eth = '${MAINNET_URI}'
+eth = "${MAINNET_URI}"
 fork = '${FORK_URI}'
 test = '${TEST_URI}'

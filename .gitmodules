@@ -4,3 +4,4 @@
 [submodule "lib/V2-gov"]
 	path = lib/V2-gov
 	url = https://github.com/liquity/V2-gov
+	branch = main
